@@ -5,10 +5,6 @@
 # is restricted to this project.
 use Mix.Config
 
-# General application configuration
-config :colorwall,
-  ecto_repos: [Colorwall.Repo]
-
 # Configures the endpoint
 config :colorwall, ColorwallWeb.Endpoint,
   url: [host: "localhost"],

@@ -27,10 +27,6 @@ defmodule ColorwallWeb.ChannelCase do
 
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Colorwall.Repo)
-    unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Colorwall.Repo, {:shared, self()})
-    end
     :ok
   end
 

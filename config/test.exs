@@ -9,11 +9,3 @@ config :colorwall, ColorwallWeb.Endpoint,
 # Print only warnings and errors during test
 config :logger, level: :warn
 
-# Configure your database
-config :colorwall, Colorwall.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "colorwall_test",
-  hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox
