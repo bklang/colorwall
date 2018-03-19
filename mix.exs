@@ -34,6 +34,7 @@ defmodule Colorwall.Mixfile do
   defp deps do
     [
       {:cowboy, "~> 1.0"},
+      {:elixir_ale, "~> 1.0"},
       {:gettext, "~> 0.11"},
       {:phoenix, "~> 1.3.0"},
       {:phoenix_pubsub, "~> 1.0"},
