@@ -6,12 +6,14 @@ defmodule Colorwall.Application do
   def start(_type, _args) do
     import Supervisor.Spec
 
+    interface_config = Application.get_env(:colorwall, :interface)
+
     # Define workers and child supervisors to be supervised
     children = [
       # Start the endpoint when the application starts
       supervisor(ColorwallWeb.Endpoint, []),
       # Start your own worker by calling: Colorwall.Worker.start_link(arg1, arg2, arg3)
-      # worker(Colorwall.Worker, [arg1, arg2, arg3]),
+      worker(Colorwall.APA102, [interface_config[:type], interface_config[:led_count], interface_config[:max_brightness]]),
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
