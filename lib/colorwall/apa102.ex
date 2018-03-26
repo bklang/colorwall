@@ -3,6 +3,7 @@ defmodule Colorwall.APA102 do
   Driver for APA102 LEDS (aka "DotStar").
   Derived from the Python APA102 library by Martin Erzberger, especially
   these inline docs (Thanks!)
+  Appreciation also to Tim from https://cpldcpu.wordpress.com/2014/11/30/understanding-the-apa102-superled/
 
   Accepted messages:
     - :set_pixel
@@ -47,25 +48,24 @@ defmodule Colorwall.APA102 do
   require Logger
 
   use GenServer
+  use Bitwise
 
   alias ElixirALE
-  alias Colorwall.RGBI
 
-  @max_speed_hz 8000000
   @led_start 0b11100000 # Three "1" bits, followed by 5 brightness bits
   @max_brightness 0b11111 # Brightness is represented in 5 bits
-  @default_pixel [0,0,0,0]
-  # TODO: Support different color order (RGB, BRG)
+  @default_pixel [@led_start,0,0,0]
   # TODO: Support bitbanging?
 
   @doc """
   type is either ElixirALE.SPI or Colorwall.SPIDummy
   led_count is the number of LEDs in the string
   max_brightness is 0..31
+  order defines the signaling sequence for the LED colors, r,g,b; b,r,g; etc
   """
-  def start_link(type \\ Colorwall.SPIDummy, led_count, max_brightness, opts \\ []) do
+  def start_link(type \\ Colorwall.SPIDummy, led_count, max_brightness, order, opts \\ []) do
     opts = Keyword.merge(opts, name: __MODULE__)
-    GenServer.start_link(__MODULE__, [type, led_count, max_brightness], opts)
+    GenServer.start_link(__MODULE__, [type, led_count, max_brightness, order], opts)
   end
 
   def server do
@@ -73,7 +73,7 @@ defmodule Colorwall.APA102 do
       raise "could not find process #{__MODULE__}. Have you started the application?"
   end
 
-  def init([type, led_count, max_brightness]) do
+  def init([type, led_count, max_brightness, order]) do
     Logger.info "Starting LED String"
 
     # Limit the brightness to the maximum if it's set higher
@@ -86,16 +86,24 @@ defmodule Colorwall.APA102 do
 
     leds = Enum.map(1..led_count, fn(_) -> @default_pixel end) |> List.to_tuple
 
-    # {:ok, pid} = if type == ElixirALE.SPI
-    #   type.start_link("spidev0.0")
-    # else
-    #   {:ok, nil}
-    # end
-    pid = nil
+    {:ok, pid} = if type == ElixirALE.SPI do
+      type.start_link("spidev0.0")
+    else
+      {:ok, nil}
+    end
 
-    {:ok, %{type: type, max_brightness: max_brightness, leds: leds, spi_pid: pid}}
+    {:ok, %{type: type, max_brightness: max_brightness, order: order, leds: leds, spi_pid: pid}}
   end
 
+  @doc """
+  Sets the color of one pixel in the LED string.
+  The changed pixel is not shown yet on the string, it is only
+  written to the pixel buffer. Colors are passed individually.
+  If brightness is not set the global brightness setting is used.
+  """
+  def set_pixel(index, rgb = [_r, _g, _b]) do
+    set_pixel(index, rgb ++ [@led_start + @max_brightness])
+  end
   def set_pixel(index, rgbi = [_r, _g, _b, _i]) do
     GenServer.call(server(), {:set_pixel, [index, rgbi]})
   end
@@ -112,13 +120,23 @@ defmodule Colorwall.APA102 do
     leds |> tuple_size() |> clock_end_frame(type, spi_pid)
   end
 
-  def handle_call({:set_pixel, [index, rgbi = [_r,_g,_b,_i]]}, _from, state = %{leds: leds}) do
-    """
-    Sets the color of one pixel in the LED string.
-    The changed pixel is not shown yet on the string, it is only
-    written to the pixel buffer. Colors are passed individually.
-    If brightness is not set the global brightness setting is used.
-    """
+  def handle_call({:set_pixel, [index, [r, g, b, i]]}, _from, state = %{leds: leds, order: order, max_brightness: max_brightness}) do
+    # limit values to 8 bits
+    r = Enum.min([r, 255])
+    g = Enum.min([g, 255])
+    b = Enum.min([b, 255])
+    # For the intensity value, limit to configured max_brightness and ensure LED start prefix
+    i = Enum.min([i, @max_brightness]) &&& max_brightness ||| @led_start
+
+    rgbi = Enum.map(["i"] ++ order, fn(key) ->
+      case key do
+        "i" -> i
+        "r" -> r
+        "g" -> g
+        "b" -> b
+      end
+    end)
+
     leds = put_elem(leds, index, rgbi)
 
     {:reply, :ok, Map.put(state, :leds, leds)}

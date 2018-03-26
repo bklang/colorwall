@@ -13,7 +13,10 @@ defmodule Colorwall.Application do
       # Start the endpoint when the application starts
       supervisor(ColorwallWeb.Endpoint, []),
       # Start your own worker by calling: Colorwall.Worker.start_link(arg1, arg2, arg3)
-      worker(Colorwall.APA102, [interface_config[:type], interface_config[:led_count], interface_config[:max_brightness]]),
+      worker(Colorwall.APA102, [interface_config[:type],
+                                interface_config[:led_count],
+                                interface_config[:max_brightness],
+                                interface_config[:order]]),
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

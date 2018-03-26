@@ -9,6 +9,10 @@ defmodule Colorwall.SPIDummy do
     GenServer.start_link(__MODULE__, [], opts)
   end
 
+  def init(args) do
+    {:ok, args}
+  end
+
   def release(_pid) do
     {:noreply}
   end

@@ -21,7 +21,8 @@ config :logger, :console,
 config :colorwall, :interface,
   type: Colorwall.SPIDummy,
   led_count: 360,
-  max_brightness: 31
+  max_brightness: 31,
+  order: ["r", "g", "b"]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
