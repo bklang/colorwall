@@ -200,8 +200,8 @@ defmodule Colorwall.APA102 do
   """
   def clock_end_frame(led_count, type, spi_pid) do
     # Round up num_led/2 bits (or num_led/16 bytes)
-    clock_count = led_count + 15 |> Integer.floor_div(16)
-    Enum.each(0..clock_count, fn(_) -> write(<<0>>, type, spi_pid) end)
+    clock_count = led_count + 15 |> div(16)
+    Enum.map(0..clock_count, fn(_) -> <<0>> end) |> :binary.list_to_bin() |> write(type, spi_pid)
   end
 
   def write(value, type, spi_pid) do
