@@ -1,5 +1,5 @@
-defmodule ColorwallWeb.Router do
-  use ColorwallWeb, :router
+defmodule Colorwall.Router do
+  use Colorwall.Web, :router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -13,14 +13,14 @@ defmodule ColorwallWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", ColorwallWeb do
+  scope "/", Colorwall do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", ColorwallWeb do
+  # scope "/api", Colorwall do
   #   pipe_through :api
   # end
 end

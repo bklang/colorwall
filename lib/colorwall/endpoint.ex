@@ -1,7 +1,7 @@
-defmodule ColorwallWeb.Endpoint do
+defmodule Colorwall.Endpoint do
   use Phoenix.Endpoint, otp_app: :colorwall
 
-  socket "/socket", ColorwallWeb.UserSocket
+  socket "/socket", Colorwall.UserSocket
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -36,22 +36,7 @@ defmodule ColorwallWeb.Endpoint do
   plug Plug.Session,
     store: :cookie,
     key: "_colorwall_key",
-    signing_salt: "ZP33W0ob"
+    signing_salt: "IHvoupwI"
 
-  plug ColorwallWeb.Router
-
-  @doc """
-  Callback invoked for dynamically configuring the endpoint.
-
-  It receives the endpoint configuration and checks if
-  configuration should be loaded from the system environment.
-  """
-  def init(_key, config) do
-    if config[:load_from_system_env] do
-      port = System.get_env("PORT") || raise "expected the PORT environment variable to be set"
-      {:ok, Keyword.put(config, :http, [:inet6, port: port])}
-    else
-      {:ok, config}
-    end
-  end
+  plug Colorwall.Router
 end
