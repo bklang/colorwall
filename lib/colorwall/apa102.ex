@@ -177,6 +177,15 @@ defmodule Colorwall.APA102 do
     {:noreply, state}
   end
 
+  def validate_pixel(rgbi = %RGBI{}) do
+    %RGBI{
+      r: Enum.max([0, Enum.min([rgbi.r, 255])]),
+      g: Enum.max([0, Enum.min([rgbi.g, 255])]),
+      b: Enum.max([0, Enum.min([rgbi.b, 255])]),
+      i: Enum.max([0, Enum.min([rgbi.i, @max_brightness])])
+    }
+  end
+
   @doc """
   Sends a start frame to the LED strip.
   This method clocks out a start frame, telling the receiving LED
