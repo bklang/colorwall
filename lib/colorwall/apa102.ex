@@ -85,7 +85,7 @@ defmodule Colorwall.APA102 do
       max_brightness
     end
 
-    leds = Enum.map(1..led_count, fn(_) -> @default_pixel end) |> List.to_tuple
+    leds = Enum.map(1..led_count, fn(_) -> @default_pixel end)
 
     {:ok, pid} = if type == ElixirALE.SPI do
       type.start_link("spidev0.0")
@@ -127,43 +127,34 @@ defmodule Colorwall.APA102 do
     GenServer.call(server(), :show)
   end
 
-  def handle_call({:set_pixel, [index, rgbi = %RGBI{}]}, _from, state = %{leds: leds, max_brightness: max_brightness}) do
-    # limit values to 8 bits
-    rgbi = %RGBI{
-      r: Enum.min([rgbi.r, 255]),
-      g: Enum.min([rgbi.g, 255]),
-      b: Enum.min([rgbi.b, 255]),
-      i: Enum.min([rgbi.i, @max_brightness])
-    }
-
-    leds = put_elem(leds, index, rgbi)
+  def handle_call({:set_pixel, [index, rgbi = %RGBI{}]}, _from, state = %{leds: leds}) do
+    leds = List.replace_at(leds, index, rgbi)
 
     {:reply, :ok, Map.put(state, :leds, leds)}
   end
 
   def handle_call({:get_pixel, [index]}, _from, state = %{leds: leds}) do
-    {:reply, leds[index], state}
+    {:reply, Enum.at(leds, index), state}
   end
 
   def handle_call({:get_strip}, _from, state = %{leds: leds}) do
     {:reply, leds, state}
   end
 
-  def handle_call(:show, _from, state = %{leds: leds, type: type, spi_pid: spi_pid, order: order}) do
+  def handle_call(:show, _from, state = %{leds: leds, type: type, spi_pid: spi_pid, order: order, max_brightness: max_brightness}) do
     clock_start_frame(type, spi_pid)
 
     order = [:i] ++ order
 
     leds
-    |> Tuple.to_list()
     |> Enum.map(fn(led) ->
-      led = Map.put(led, :i, led.i ||| @led_start)
+      led = Map.put(led, :i, Enum.min([led.i, max_brightness]) ||| @led_start)
       Enum.map(order, fn(key) -> Map.get(led, key) end)
     end)
     |> :binary.list_to_bin()
     |> write(type, spi_pid)
 
-    leds |> tuple_size() |> clock_end_frame(type, spi_pid)
+    leds |> Enum.count() |> clock_end_frame(type, spi_pid)
     {:reply, :ok, state}
   end
 
