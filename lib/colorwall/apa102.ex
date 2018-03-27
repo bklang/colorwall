@@ -51,10 +51,11 @@ defmodule Colorwall.APA102 do
   use Bitwise
 
   alias ElixirALE
+  alias Colorwall.RGBI
 
   @led_start 0b11100000 # Three "1" bits, followed by 5 brightness bits
   @max_brightness 0b11111 # Brightness is represented in 5 bits
-  @default_pixel [@led_start,0,0,0]
+  @default_pixel %RGBI{i: @max_brightness}
   # TODO: Support bitbanging?
 
   @doc """
@@ -101,11 +102,22 @@ defmodule Colorwall.APA102 do
   written to the pixel buffer. Colors are passed individually.
   If brightness is not set the global brightness setting is used.
   """
-  def set_pixel(index, rgb = [_r, _g, _b]) do
-    set_pixel(index, rgb ++ [@led_start + @max_brightness])
+  def set_pixel(index, [r, g, b]) do
+    set_pixel(index, %RGBI{r: r, g: g, b: b, i: @max_brightness})
   end
-  def set_pixel(index, rgbi = [_r, _g, _b, _i]) do
+  def set_pixel(index, [r, g, b, i]) do
+    set_pixel(index, %RGBI{r: r, g: g, b: b, i: i})
+  end
+  def set_pixel(index, rgbi = %RGBI{}) do
     GenServer.call(server(), {:set_pixel, [index, rgbi]})
+  end
+
+  def get_pixel(index) do
+    GenServer.call(server(), {:get_pixel, [index]})
+  end
+
+  def get_strip() do
+    GenServer.call(server(), {:get_strip})
   end
 
   @doc """
@@ -114,36 +126,44 @@ defmodule Colorwall.APA102 do
   def show() do
     GenServer.call(server(), :show)
   end
-  def show(leds, type, spi_pid) do
-    clock_start_frame(type, spi_pid)
-    leds |> Tuple.to_list() |> :binary.list_to_bin() |> write(type, spi_pid)
-    leds |> tuple_size() |> clock_end_frame(type, spi_pid)
-  end
 
-  def handle_call({:set_pixel, [index, [r, g, b, i]]}, _from, state = %{leds: leds, order: order, max_brightness: max_brightness}) do
+  def handle_call({:set_pixel, [index, rgbi = %RGBI{}]}, _from, state = %{leds: leds, max_brightness: max_brightness}) do
     # limit values to 8 bits
-    r = Enum.min([r, 255])
-    g = Enum.min([g, 255])
-    b = Enum.min([b, 255])
-    # For the intensity value, limit to configured max_brightness and ensure LED start prefix
-    i = Enum.min([i, @max_brightness]) &&& max_brightness ||| @led_start
-
-    rgbi = Enum.map(["i"] ++ order, fn(key) ->
-      case key do
-        "i" -> i
-        "r" -> r
-        "g" -> g
-        "b" -> b
-      end
-    end)
+    rgbi = %RGBI{
+      r: Enum.min([rgbi.r, 255]),
+      g: Enum.min([rgbi.g, 255]),
+      b: Enum.min([rgbi.b, 255]),
+      i: Enum.min([rgbi.i, @max_brightness])
+    }
 
     leds = put_elem(leds, index, rgbi)
 
     {:reply, :ok, Map.put(state, :leds, leds)}
   end
 
-  def handle_call(:show, _from, state = %{leds: leds, type: type, spi_pid: spi_pid}) do
-    show(leds, type, spi_pid)
+  def handle_call({:get_pixel, [index]}, _from, state = %{leds: leds}) do
+    {:reply, leds[index], state}
+  end
+
+  def handle_call({:get_strip}, _from, state = %{leds: leds}) do
+    {:reply, leds, state}
+  end
+
+  def handle_call(:show, _from, state = %{leds: leds, type: type, spi_pid: spi_pid, order: order}) do
+    clock_start_frame(type, spi_pid)
+
+    order = [:i] ++ order
+
+    leds
+    |> Tuple.to_list()
+    |> Enum.map(fn(led) ->
+      led = Map.put(led, :i, led.i ||| @led_start)
+      Enum.map(order, fn(key) -> Map.get(led, key) end)
+    end)
+    |> :binary.list_to_bin()
+    |> write(type, spi_pid)
+
+    leds |> tuple_size() |> clock_end_frame(type, spi_pid)
     {:reply, :ok, state}
   end
 

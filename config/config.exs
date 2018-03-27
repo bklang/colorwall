@@ -19,10 +19,10 @@ config :logger, :console,
   metadata: [:request_id]
 
 config :colorwall, :interface,
-  type: Colorwall.SPIDummy,
-  led_count: 360,
+  type: ElixirALE.SPI,
+  led_count: 180,
   max_brightness: 31,
-  order: ["r", "g", "b"]
+  order: [:b, :g, :r]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
