@@ -112,6 +112,15 @@ defmodule Colorwall.APA102 do
     GenServer.call(server(), {:set_pixel, [index, rgbi]})
   end
 
+  def set_strip(rgbi = %RGBI{}) do
+    led_count = get_strip() |> Enum.count()
+    Enum.map(1..led_count, fn(_) -> rgbi end)
+    |> set_strip()
+  end
+  def set_strip(leds) do
+    GenServer.call(server(), {:set_strip, [leds]})
+  end
+
   def get_pixel(index) do
     GenServer.call(server(), {:get_pixel, [index]})
   end
@@ -129,7 +138,10 @@ defmodule Colorwall.APA102 do
 
   def handle_call({:set_pixel, [index, rgbi = %RGBI{}]}, _from, state = %{leds: leds}) do
     leds = List.replace_at(leds, index, rgbi)
+    {:reply, :ok, Map.put(state, :leds, leds)}
+  end
 
+  def handle_call({:set_strip, [leds]}, _from, state) do
     {:reply, :ok, Map.put(state, :leds, leds)}
   end
 
