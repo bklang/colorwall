@@ -136,6 +136,10 @@ defmodule Colorwall.APA102 do
     GenServer.call(server(), :show)
   end
 
+  def led_count() do
+    GenServer.call(server(), {:led_count})
+  end
+
   def handle_call({:set_pixel, [index, rgbi = %RGBI{}]}, _from, state = %{leds: leds}) do
     leds = List.replace_at(leds, index, rgbi)
     {:reply, :ok, Map.put(state, :leds, leds)}
@@ -172,6 +176,10 @@ defmodule Colorwall.APA102 do
 
   def handle_call(:get_state, _from, state) do
     {:reply, state, state}
+  end
+
+  def handle_call(:led_count, _from, state = %{leds: leds}) do
+    {:reply, tuple_size(leds) - 1, state}
   end
 
   def handle_call(request, from, state) do
