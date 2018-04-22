@@ -11,6 +11,7 @@ defmodule ColorwallWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    post "/color", ColorwallWeb.ColorController, :set_color
   end
 
   scope "/", ColorwallWeb do
