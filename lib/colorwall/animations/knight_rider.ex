@@ -33,8 +33,4 @@ defmodule Colorwall.Animations.KnightRider do
 
     Map.merge(opts, %{head: opts.head + new_direction, direction: new_direction})
   end
-
-  def contain_idx(idx, strip_len) do
-    Enum.min([strip_len - 1, Enum.max([0, idx])])
-  end
 end
