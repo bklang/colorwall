@@ -5,7 +5,7 @@ defmodule Colorwall.Animations.Glitter do
   alias Colorwall.APA102
   alias Colorwall.RGBI
 
-  def step(_opts) do
+  def step(opts) do
     scale = 0.95
     Enum.map(APA102.get_strip(), fn(led) ->
       case led do
@@ -20,5 +20,6 @@ defmodule Colorwall.Animations.Glitter do
           %RGBI{r: trunc(led.r*scale), g: trunc(led.g*scale), b: trunc(led.b*scale)}
       end |> APA102.validate_pixel()
     end) |> APA102.set_strip()
+    opts
   end
 end

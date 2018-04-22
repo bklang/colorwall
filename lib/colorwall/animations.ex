@@ -8,10 +8,10 @@ defmodule Colorwall.Animations do
     quote do
       import Colorwall.Animations.Helpers
 
-      def run(opts \\ []) do
-        step(opts)
+      def run(opts \\ %{}) do
+        new_opts = step(opts)
         APA102.show()
-        run(opts)
+        run(new_opts)
       end
     end
   end
