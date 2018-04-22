@@ -4,7 +4,7 @@ defmodule ColorwallWeb.ColorController do
   alias Colorwall.APA102
   alias Colorwall.RGBI
 
-  def set_color(conn, params = %{"r" => r, "g" => g, "b" => b}) do
+  def set_color(conn, _params = %{"r" => r, "g" => g, "b" => b}) do
     r = String.to_integer(r)
     g = String.to_integer(g)
     b = String.to_integer(b)
