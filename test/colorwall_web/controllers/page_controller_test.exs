@@ -1,5 +1,5 @@
-defmodule Colorwall.PageControllerTest do
-  use Colorwall.ConnCase
+defmodule ColorwallWeb.PageControllerTest do
+  use ColorwallWeb.ConnCase
 
   test "GET /", %{conn: conn} do
     conn = get conn, "/"

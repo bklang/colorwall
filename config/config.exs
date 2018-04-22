@@ -6,10 +6,10 @@
 use Mix.Config
 
 # Configures the endpoint
-config :colorwall, Colorwall.Endpoint,
+config :colorwall, ColorwallWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "o+Cix8x8u6YepUqIUlJgBHR5ujvYF1dAuclpQaPvYd09qzZ2W24SICcGOBaKg/oR",
-  render_errors: [view: Colorwall.ErrorView, accepts: ~w(html json)],
+  secret_key_base: "pujdag/cGxJ9QIE2KMVzL4kr8YJJFd3ZI9CrrrFJy+vIb9qs43qPqUV8XLwJiy8S",
+  render_errors: [view: ColorwallWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Colorwall.PubSub,
            adapter: Phoenix.PubSub.PG2]
 

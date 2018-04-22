@@ -1,4 +1,4 @@
-defmodule Colorwall.ErrorHelpers do
+defmodule ColorwallWeb.ErrorHelpers do
   @moduledoc """
   Conveniences for translating and building error messages.
   """
@@ -9,9 +9,9 @@ defmodule Colorwall.ErrorHelpers do
   Generates tag for inlined form input errors.
   """
   def error_tag(form, field) do
-    if error = form.errors[field] do
+    Enum.map(Keyword.get_values(form.errors, field), fn (error) ->
       content_tag :span, translate_error(error), class: "help-block"
-    end
+    end)
   end
 
   @doc """
@@ -32,9 +32,9 @@ defmodule Colorwall.ErrorHelpers do
     #     dgettext "errors", "is invalid"
     #
     if count = opts[:count] do
-      Gettext.dngettext(Colorwall.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(ColorwallWeb.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(Colorwall.Gettext, "errors", msg, opts)
+      Gettext.dgettext(ColorwallWeb.Gettext, "errors", msg, opts)
     end
   end
 end

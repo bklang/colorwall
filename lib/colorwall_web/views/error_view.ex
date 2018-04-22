@@ -1,5 +1,5 @@
-defmodule Colorwall.ErrorView do
-  use Colorwall.Web, :view
+defmodule ColorwallWeb.ErrorView do
+  use ColorwallWeb, :view
 
   def render("404.html", _assigns) do
     "Page not found"
