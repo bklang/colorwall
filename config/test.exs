@@ -9,3 +9,5 @@ config :colorwall, ColorwallWeb.Endpoint,
 # Print only warnings and errors during test
 config :logger, level: :warn
 
+config :colorwall, :interface,
+  type: Colorwall.SPIDummy
