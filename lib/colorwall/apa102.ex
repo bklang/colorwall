@@ -113,7 +113,7 @@ defmodule Colorwall.APA102 do
   end
 
   def set_strip(rgbi = %RGBI{}) do
-    led_count = get_strip() |> Enum.count()
+    led_count = get_strip() |> length()
     Enum.map(1..led_count, fn(_) -> rgbi end)
     |> set_strip()
   end
